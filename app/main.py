@@ -66,11 +66,12 @@ def update_ticket(ticket_id: str, payload: TicketUpdate) -> Ticket:
     if not current:
         raise HTTPException(status_code=404, detail="Ticket not found")
 
+    updates = payload.model_dump(exclude_unset=True)
     updated = Ticket(
         id=current.id,
-        title=payload.title if payload.title is not None else current.title,
-        description=payload.description if payload.description is not None else current.description,
-        status=payload.status if payload.status is not None else current.status,
+        title=updates.get("title", current.title),
+        description=updates.get("description", current.description),
+        status=updates.get("status", current.status),
         created_at=current.created_at,
         updated_at=now_utc_iso(),
     )

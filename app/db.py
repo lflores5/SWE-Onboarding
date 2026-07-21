@@ -1,7 +1,7 @@
 import logging
 import os
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Optional
 
 from azure.cosmos import PartitionKey
 from azure.cosmos.cosmos_client import CosmosClient
@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 class TicketRepository(ABC):
     @abstractmethod
-    def list_tickets(self) -> List[Ticket]:
+    def list_tickets(self) -> list[Ticket]:
         raise NotImplementedError
 
     @abstractmethod
@@ -40,9 +40,9 @@ class TicketRepository(ABC):
 
 class InMemoryTicketRepository(TicketRepository):
     def __init__(self) -> None:
-        self._tickets: Dict[str, Ticket] = {}
+        self._tickets: dict[str, Ticket] = {}
 
-    def list_tickets(self) -> List[Ticket]:
+    def list_tickets(self) -> list[Ticket]:
         return list(self._tickets.values())
 
     def get_ticket(self, ticket_id: str) -> Optional[Ticket]:
@@ -79,7 +79,7 @@ class CosmosTicketRepository(TicketRepository):
             partition_key=PartitionKey(path="/id"),
         )
 
-    def list_tickets(self) -> List[Ticket]:
+    def list_tickets(self) -> list[Ticket]:
         rows = self.container.query_items(
             query="SELECT * FROM c",
             enable_cross_partition_query=True,

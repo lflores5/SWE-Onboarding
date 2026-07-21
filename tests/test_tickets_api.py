@@ -36,6 +36,10 @@ def test_ticket_crud_flow() -> None:
     assert updated["status"] == "in_progress"
     assert updated["description"] == "Investigating auth service"
 
+    clear_res = client.patch(f"/tickets/{ticket_id}", json={"description": None})
+    assert clear_res.status_code == 200
+    assert clear_res.json()["description"] is None
+
     delete_res = client.delete(f"/tickets/{ticket_id}")
     assert delete_res.status_code == 204
 
