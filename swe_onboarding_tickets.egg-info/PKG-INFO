@@ -1,0 +1,5 @@
+Metadata-Version: 2.4
+Name: swe-onboarding-tickets
+Version: 0.1.0
+Summary: Support ticket CRUD microservice
+Requires-Python: >=3.12

@@ -1,9 +1,12 @@
 import logging
 import time
 import uuid
+from collections.abc import Awaitable, Callable
 
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.responses import JSONResponse
+from starlette.requests import Request
+from starlette.responses import Response as StarletteResponse
 
 from app.db import create_repository
 from app.models import Ticket, TicketCreate, TicketUpdate, now_utc_iso
@@ -16,7 +19,9 @@ repository = create_repository()
 
 
 @app.middleware("http")
-async def request_logging_middleware(request, call_next):  # type: ignore[no-untyped-def]
+async def request_logging_middleware(
+    request: Request, call_next: Callable[[Request], Awaitable[StarletteResponse]]
+) -> StarletteResponse:
     start = time.perf_counter()
     response = await call_next(request)
     duration_ms = round((time.perf_counter() - start) * 1000, 2)

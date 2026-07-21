@@ -98,8 +98,11 @@ class CosmosTicketRepository(TicketRepository):
         return Ticket.model_validate(doc)
 
     def update_ticket(self, ticket: Ticket) -> Optional[Ticket]:
-        doc = self.container.upsert_item(body=ticket.model_dump())
-        return Ticket.model_validate(doc)
+        try:
+            doc = self.container.replace_item(item=ticket.id, body=ticket.model_dump())
+            return Ticket.model_validate(doc)
+        except CosmosResourceNotFoundError:
+            return None
 
     def delete_ticket(self, ticket_id: str) -> bool:
         try:
