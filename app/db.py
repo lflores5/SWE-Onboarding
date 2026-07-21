@@ -98,16 +98,15 @@ class CosmosTicketRepository(TicketRepository):
         return Ticket.model_validate(doc)
 
     def update_ticket(self, ticket: Ticket) -> Optional[Ticket]:
-        if not self.get_ticket(ticket.id):
-            return None
         doc = self.container.upsert_item(body=ticket.model_dump())
         return Ticket.model_validate(doc)
 
     def delete_ticket(self, ticket_id: str) -> bool:
-        if not self.get_ticket(ticket_id):
+        try:
+            self.container.delete_item(item=ticket_id, partition_key=ticket_id)
+            return True
+        except CosmosResourceNotFoundError:
             return False
-        self.container.delete_item(item=ticket_id, partition_key=ticket_id)
-        return True
 
     def backend_name(self) -> str:
         return "azure-cosmos"
