@@ -1,0 +1,4 @@
+[bandit]
+exclude_dirs = ['.venv', 'venv', 'tests', 'swe_onboarding_tickets.egg-info', '.git']
+skips = []
+# B101: assert_used - Allow asserts in test files
