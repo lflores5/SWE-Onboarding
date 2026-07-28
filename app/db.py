@@ -1,5 +1,4 @@
 import logging
-import os
 from abc import ABC, abstractmethod
 from typing import Optional
 
@@ -7,6 +6,7 @@ from azure.cosmos import PartitionKey
 from azure.cosmos.cosmos_client import CosmosClient
 from azure.cosmos.exceptions import CosmosResourceNotFoundError
 
+from app.config import settings
 from app.models import Ticket
 
 logger = logging.getLogger(__name__)
@@ -67,10 +67,10 @@ class InMemoryTicketRepository(TicketRepository):
 
 class CosmosTicketRepository(TicketRepository):
     def __init__(self) -> None:
-        endpoint = os.environ["COSMOS_DB_ENDPOINT"]
-        key = os.environ["COSMOS_DB_KEY"]
-        db_name = os.getenv("COSMOS_DB_NAME", "support")
-        container_name = os.getenv("COSMOS_CONTAINER_NAME", "tickets")
+        endpoint = settings.cosmos_endpoint
+        key = settings.cosmos_key
+        db_name = settings.cosmos_database_id
+        container_name = settings.cosmos_container_id
 
         client = CosmosClient(endpoint, credential=key)
         db = client.create_database_if_not_exists(id=db_name)
@@ -116,7 +116,7 @@ class CosmosTicketRepository(TicketRepository):
 
 
 def create_repository() -> TicketRepository:
-    if os.getenv("COSMOS_DB_ENDPOINT") and os.getenv("COSMOS_DB_KEY"):
+    if settings.is_cosmos_configured():
         try:
             return CosmosTicketRepository()
         except Exception as exc:

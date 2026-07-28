@@ -1,3 +1,16 @@
 __pycache__/
 .pytest_cache/
 .venv/
+.env
+
+# Linting and code quality reports
+bandit_report.json
+bandit_report.txt
+pylint_report.txt
+.coverage
+htmlcov/
+
+# Build artifacts
+*.egg-info/
+dist/
+build/

@@ -8,13 +8,48 @@ from fastapi.responses import JSONResponse
 from starlette.requests import Request
 from starlette.responses import Response as StarletteResponse
 
+# OpenTelemetry imports for auto-instrumentation
+from opentelemetry import trace
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
 from app.db import create_repository
 from app.models import Ticket, TicketCreate, TicketUpdate, now_utc_iso
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 logger = logging.getLogger("tickets-api")
 
+# --- OpenTelemetry Setup ---
+# Configure the resource to identify this service
+resource = Resource.create(
+    {"service.name": "swe-tickets-microservice", "service.version": "1.0.0", "environment": "development"}
+)
+
+# Set the global TracerProvider
+trace.set_tracer_provider(TracerProvider(resource=resource))
+
+# Configure the OTLP HTTP Exporter to send traces to Jaeger
+otlp_exporter = OTLPSpanExporter(
+    endpoint="http://jaeger.whitewave-0e08ca21.eastus2.azurecontainerapps.io:4318/v1/traces"
+)
+
+# Add a SpanProcessor to batch and send spans to the exporter
+span_processor = BatchSpanProcessor(otlp_exporter)
+trace.get_tracer_provider().add_span_processor(span_processor)
+
+# Instrument the requests library for outgoing HTTP calls
+RequestsInstrumentor().instrument()
+
+# Create FastAPI app
 app = FastAPI(title="Support Tickets API", version="1.0.0")
+
+# Auto-instrument FastAPI to trace all incoming requests
+FastAPIInstrumentor.instrument_app(app)
+
 repository = create_repository()
 
 
